@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Any2Mp3 — Herramientas de Audio</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🎵 Any2Mp3</h1>
+            <p class="subtitle">Herramientas de audio inteligentes</p>
+        </header>
+
+        <!-- ========== Navegación por tabs ========== -->
+        <nav class="tabs">
+            <button class="tab tab--active" data-tab="converter">🔄 Convertidor</button>
+            <button class="tab" data-tab="transcriber">🎤 Audio a Texto</button>
+        </nav>
+
+        <!-- ========== TAB 1: Convertidor ========== -->
+        <main id="tab-converter" class="tab-content tab-content--active">
+            <!-- Zona de drop -->
+            <div id="drop-zone" class="drop-zone">
+                <div class="drop-zone__content">
+                    <span class="drop-zone__icon">📁</span>
+                    <p>Arrastrá tu archivo acá o hacé clic para seleccionar</p>
+                    <p class="drop-zone__formats" id="supported-formats">
+                        Cargando formatos...
+                    </p>
+                </div>
+                <input type="file" id="file-input" class="drop-zone__input" accept="">
+            </div>
+
+            <!-- Info del archivo seleccionado -->
+            <div id="file-info" class="file-info hidden">
+                <div class="file-info__details">
+                    <span class="file-info__icon">🎬</span>
+                    <div>
+                        <p class="file-info__name" id="file-name"></p>
+                        <p class="file-info__size" id="file-size"></p>
+                    </div>
+                </div>
+                <button id="btn-remove" class="btn btn--remove" title="Quitar archivo">✕</button>
+            </div>
+
+            <!-- Botón de conversión -->
+            <button id="btn-convert" class="btn btn--convert hidden">
+                🔄 Convertir a MP3
+            </button>
+
+            <!-- Barra de progreso -->
+            <div id="progress-container" class="progress hidden">
+                <div class="progress__bar" id="progress-bar"></div>
+                <p class="progress__text" id="progress-text">Convirtiendo...</p>
+            </div>
+
+            <!-- Resultado -->
+            <div id="result" class="result hidden">
+                <span class="result__icon">✅</span>
+                <p>¡Conversión exitosa!</p>
+            </div>
+
+            <!-- Error -->
+            <div id="error" class="error hidden">
+                <span class="error__icon">❌</span>
+                <p id="error-text"></p>
+            </div>
+        </main>
+
+        <!-- ========== TAB 2: Transcripción ========== -->
+        <main id="tab-transcriber" class="tab-content">
+            <!-- Zona de drop para audio -->
+            <div id="t-drop-zone" class="drop-zone">
+                <div class="drop-zone__content">
+                    <span class="drop-zone__icon">🎤</span>
+                    <p>Arrastrá tu audio acá o hacé clic para seleccionar</p>
+                    <p class="drop-zone__formats" id="t-supported-formats">
+                        Cargando formatos...
+                    </p>
+                </div>
+                <input type="file" id="t-file-input" class="drop-zone__input" accept="">
+            </div>
+
+            <!-- Info del archivo seleccionado -->
+            <div id="t-file-info" class="file-info hidden">
+                <div class="file-info__details">
+                    <span class="file-info__icon">🎵</span>
+                    <div>
+                        <p class="file-info__name" id="t-file-name"></p>
+                        <p class="file-info__size" id="t-file-size"></p>
+                    </div>
+                </div>
+                <button id="t-btn-remove" class="btn btn--remove" title="Quitar archivo">✕</button>
+            </div>
+
+            <!-- Opciones de transcripción -->
+            <div id="t-options" class="transcription-options-grid hidden">
+                <div class="transcription-options">
+                    <label for="t-model" class="transcription-options__label">Calidad:</label>
+                    <select id="t-model" class="transcription-options__select">
+                        <option value="tiny">⚡ Ultra rápido (tiny)</option>
+                        <option value="base" selected>🚀 Rápido (base)</option>
+                        <option value="small">⚖️ Balanceado (small)</option>
+                        <option value="medium">🎯 Preciso (medium)</option>
+                        <option value="turbo">🧠 SOTA (turbo)</option>
+                    </select>
+                </div>
+                <div class="transcription-options">
+                    <label for="t-language" class="transcription-options__label">Idioma:</label>
+                    <select id="t-language" class="transcription-options__select">
+                        <option value="">🌐 Auto-detectar</option>
+                        <option value="es">🇪🇸 Español</option>
+                        <option value="en">🇺🇸 Inglés</option>
+                        <option value="fr">🇫🇷 Francés</option>
+                        <option value="de">🇩🇪 Alemán</option>
+                        <option value="pt">🇧🇷 Portugués</option>
+                        <option value="it">🇮🇹 Italiano</option>
+                        <option value="ja">🇯🇵 Japonés</option>
+                        <option value="ko">🇰🇷 Coreano</option>
+                        <option value="zh">🇨🇳 Chino</option>
+                        <option value="ru">🇷🇺 Ruso</option>
+                        <option value="ar">🇸🇦 Árabe</option>
+                        <option value="hi">🇮🇳 Hindi</option>
+                    </select>
+                </div>
+                <p class="transcription-options__hint" id="t-model-hint">💡 "base" es rápido en CPU. Usá "turbo" si tenés buena GPU.</p>
+            </div>
+
+            <!-- Botón de transcripción -->
+            <button id="t-btn-transcribe" class="btn btn--convert hidden">
+                🎤 Transcribir Audio
+            </button>
+
+            <!-- Barra de progreso -->
+            <div id="t-progress-container" class="progress hidden">
+                <div class="progress__bar" id="t-progress-bar"></div>
+                <p class="progress__text" id="t-progress-text">Transcribiendo...</p>
+            </div>
+
+            <!-- Resultado de transcripción -->
+            <div id="t-result" class="transcription-result hidden">
+                <div class="transcription-result__header">
+                    <span class="result__icon">✅</span>
+                    <p>Transcripción completada</p>
+                    <span class="transcription-result__lang" id="t-detected-lang"></span>
+                </div>
+                <div class="transcription-result__text" id="t-result-text"></div>
+                <div class="transcription-result__actions">
+                    <button id="t-btn-copy" class="btn btn--action" title="Copiar texto">
+                        📋 Copiar
+                    </button>
+                    <button id="t-btn-download" class="btn btn--action" title="Descargar como .txt">
+                        💾 Descargar .txt
+                    </button>
+                    <button id="t-btn-timestamps" class="btn btn--action" title="Mostrar timestamps">
+                        ⏱️ Timestamps
+                    </button>
+                </div>
+                <!-- Segmentos con timestamps (oculto por defecto) -->
+                <div id="t-segments" class="transcription-segments hidden"></div>
+            </div>
+
+            <!-- Error -->
+            <div id="t-error" class="error hidden">
+                <span class="error__icon">❌</span>
+                <p id="t-error-text"></p>
+            </div>
+
+            <!-- Info del modelo -->
+            <div class="model-info">
+                <p>🧠 Powered by <strong>OpenAI Whisper</strong> — SOTA en reconocimiento de voz</p>
+                <p>99 idiomas · Auto-detección · Timestamps · Elegí el modelo según tu hardware</p>
+            </div>
+        </main>
+
+        <footer>
+            <p>Any2Mp3 &mdash; Modular &amp; Extensible Audio Toolkit</p>
+        </footer>
+    </div>
+
+    <script src="/static/js/app.js"></script>
+</body>
+</html>

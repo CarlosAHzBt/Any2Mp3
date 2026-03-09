@@ -1,0 +1,9 @@
+# Any2Mp3 — Archivos temporales y dependencias
+uploads/
+outputs/
+__pycache__/
+*.pyc
+.venv/
+*.mp3
+*.mp4
+*.mov

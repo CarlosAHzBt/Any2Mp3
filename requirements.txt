@@ -1,0 +1,5 @@
+flask>=3.0
+ffmpeg-python>=0.2
+openai-whisper>=20231117
+pydub>=0.25
+audioop-lts>=0.2.2
