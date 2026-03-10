@@ -7,6 +7,32 @@
 document.addEventListener("DOMContentLoaded", () => {
 
     // ============================================================
+    //  Widget de dispositivo (GPU / CPU)
+    // ============================================================
+    (async function loadDeviceInfo() {
+        const badge = document.getElementById("device-badge");
+        const text  = document.getElementById("device-text");
+        try {
+            const res  = await fetch("/api/device");
+            const data = await res.json();
+
+            badge.classList.remove("device-badge--loading");
+
+            if (data.device === "gpu") {
+                badge.classList.add("device-badge--gpu");
+                text.textContent = `GPU: ${data.name} · ${data.vram_total_gb} GB VRAM · CUDA ${data.cuda_version}`;
+            } else {
+                badge.classList.add("device-badge--cpu");
+                text.textContent = "CPU — Sin GPU detectada (transcripción más lenta)";
+            }
+        } catch {
+            badge.classList.remove("device-badge--loading");
+            badge.classList.add("device-badge--cpu");
+            text.textContent = "No se pudo detectar el dispositivo";
+        }
+    })();
+
+    // ============================================================
     //  Navegación por Tabs
     // ============================================================
     const tabs = document.querySelectorAll(".tab");
@@ -247,9 +273,48 @@ document.addEventListener("DOMContentLoaded", () => {
     const tErrorDiv      = document.getElementById("t-error");
     const tErrorText     = document.getElementById("t-error-text");
     const tFormatsSpan   = document.getElementById("t-supported-formats");
+    const tWhisperOpts   = document.getElementById("t-whisper-options");
+    const tElevenOpts    = document.getElementById("t-elevenlabs-options");
+    const tDiarize       = document.getElementById("t-diarize");
+    const engineButtons  = document.querySelectorAll(".engine-btn");
 
     let tSelectedFile = null;
     let tTranscriptionData = null;
+    let tCurrentEngine = "whisper";
+
+    // --- Engine selector ---
+    engineButtons.forEach(btn => {
+        btn.addEventListener("click", () => {
+            const engine = btn.dataset.engine;
+            tCurrentEngine = engine;
+            engineButtons.forEach(b => b.classList.remove("engine-btn--active"));
+            btn.classList.add("engine-btn--active");
+
+            if (engine === "elevenlabs") {
+                tWhisperOpts.classList.add("hidden");
+                tElevenOpts.classList.remove("hidden");
+                tModelHint.textContent = "💡 Scribe v2: transcripción cloud ultra rápida. Requiere API key de ElevenLabs.";
+            } else {
+                tWhisperOpts.classList.remove("hidden");
+                tElevenOpts.classList.add("hidden");
+                tModelHint.textContent = modelHints[tModel.value] || "";
+            }
+        });
+    });
+
+    // Cargar estado de engines disponibles
+    (async function loadEngines() {
+        try {
+            const res = await fetch("/api/transcription/engines");
+            const data = await res.json();
+            const elBtn = document.getElementById("t-engine-elevenlabs");
+            const elEngine = data.engines.find(e => e.id === "elevenlabs");
+            if (elEngine && !elEngine.available) {
+                elBtn.classList.add("engine-btn--disabled");
+                elBtn.title = "API key no configurada. Agregá ELEVENLABS_API_KEY en .env";
+            }
+        } catch { /* ignore */ }
+    })();
 
     // Hints por modelo
     const modelHints = {
@@ -373,7 +438,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const formData = new FormData();
         formData.append("file", tSelectedFile);
-        formData.append("model", tModel.value);
+        formData.append("engine", tCurrentEngine);
+        if (tCurrentEngine === "whisper") {
+            formData.append("model", tModel.value);
+        }
+        if (tCurrentEngine === "elevenlabs" && tDiarize.checked) {
+            formData.append("diarize", "true");
+        }
         if (tLanguage.value) {
             formData.append("language", tLanguage.value);
         }
@@ -386,12 +457,19 @@ document.addEventListener("DOMContentLoaded", () => {
                     const pct = Math.round((e.loaded / e.total) * 40);
                     tProgressBar.style.width = `${pct}%`;
                     if (pct >= 40) {
-                        const modelLabel = tModel.options[tModel.selectedIndex].text;
-                        tProgressText.textContent = `🧠 Transcribiendo con ${modelLabel}...`;
+                        const engineLabel = tCurrentEngine === "elevenlabs" ? "🔷 Scribe v2" : tModel.options[tModel.selectedIndex].text;
+                        tProgressText.textContent = `🧠 Transcribiendo con ${engineLabel}...`;
                         // Animar la barra lentamente mientras espera
                         let fakePct = 40;
-                        const msgs = [
-                            `🧠 Transcribiendo con ${modelLabel}...`,
+                        const msgs = tCurrentEngine === "elevenlabs"
+                            ? [
+                                `🔷 Enviando audio a ElevenLabs...`,
+                                `🔷 Scribe v2 procesando...`,
+                                `🔷 Generando transcripción...`,
+                                `⏳ Casi listo...`,
+                            ]
+                            : [
+                            `🧠 Transcribiendo con ${engineLabel}...`,
                             `🔪 Dividiendo audio en partes...`,
                             `📝 Procesando chunks de audio...`,
                             `🧩 Mergeando transcripciones...`,

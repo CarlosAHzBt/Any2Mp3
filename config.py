@@ -5,6 +5,10 @@ Responsabilidad: Almacenar constantes y parámetros de configuración.
 
 import os
 
+from dotenv import load_dotenv
+
+load_dotenv()
+
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 # Carpetas de trabajo
@@ -48,6 +52,9 @@ CHUNK_MIN_DURATION_SEC = 120
 
 # Formatos de audio soportados para transcripción
 TRANSCRIPTION_AUDIO_EXTENSIONS = {"mp3", "wav", "flac", "ogg", "m4a", "wma", "aac", "opus", "webm", "mp4", "mov"}
+
+# ---- ElevenLabs (Scribe v2) ----
+ELEVENLABS_API_KEY = os.environ.get("ELEVENLABS_API_KEY", "")
 
 # Crear carpetas si no existen
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)

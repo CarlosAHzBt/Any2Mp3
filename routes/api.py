@@ -8,10 +8,32 @@ import os
 
 from flask import Blueprint, request, jsonify, send_file
 
+import torch
+
 from converters.registry import get_supported_extensions
-from services import file_service, conversion_service, transcription_service
+from services import file_service, conversion_service, transcription_service, elevenlabs_service
 
 api = Blueprint("api", __name__)
+
+
+@api.route("/api/device", methods=["GET"])
+def device_info():
+    """Retorna información sobre el dispositivo de cómputo (GPU/CPU)."""
+    if torch.cuda.is_available():
+        gpu_name = torch.cuda.get_device_name(0)
+        vram_total = round(torch.cuda.get_device_properties(0).total_memory / (1024 ** 3), 1)
+        vram_used = round(torch.cuda.memory_allocated(0) / (1024 ** 3), 2)
+        return jsonify({
+            "device": "gpu",
+            "name": gpu_name,
+            "vram_total_gb": vram_total,
+            "vram_used_gb": vram_used,
+            "cuda_version": torch.version.cuda or "N/A",
+        })
+    return jsonify({
+        "device": "cpu",
+        "name": "CPU",
+    })
 
 
 @api.route("/api/formats", methods=["GET"])
@@ -100,6 +122,28 @@ def transcription_models():
     return jsonify({"models": transcription_service.get_available_models()})
 
 
+@api.route("/api/transcription/engines", methods=["GET"])
+def transcription_engines():
+    """Retorna los motores de transcripción disponibles."""
+    engines = [
+        {
+            "id": "whisper",
+            "name": "OpenAI Whisper",
+            "description": "Modelo local — corre en tu GPU/CPU, sin costo por uso",
+            "available": True,
+            "icon": "🧠",
+        },
+        {
+            "id": "elevenlabs",
+            "name": "ElevenLabs Scribe v2",
+            "description": "API cloud — SOTA, ultra rápido, requiere API key",
+            "available": elevenlabs_service.is_available(),
+            "icon": "🔷",
+        },
+    ]
+    return jsonify({"engines": engines})
+
+
 @api.route("/api/transcribe", methods=["POST"])
 def transcribe_file():
     """
@@ -127,18 +171,30 @@ def transcribe_file():
     language = request.form.get("language") or None
     # Modelo opcional ("tiny", "base", "small", etc.)
     model_name = request.form.get("model") or None
+    # Motor de transcripción: "whisper" o "elevenlabs"
+    engine = request.form.get("engine", "whisper")
+    # Diarization (solo ElevenLabs)
+    diarize = request.form.get("diarize", "false").lower() == "true"
 
     input_path = None
     try:
         # 1. Guardar archivo subido
         input_path, original_name = file_service.save_uploaded_file(file)
 
-        # 2. Transcribir con Whisper
-        result = transcription_service.transcribe(input_path, language=language, model_name=model_name)
+        # 2. Transcribir con el motor seleccionado
+        if engine == "elevenlabs":
+            result = elevenlabs_service.transcribe(
+                input_path, language=language, diarize=diarize
+            )
+        else:
+            result = transcription_service.transcribe(
+                input_path, language=language, model_name=model_name
+            )
 
         return jsonify(result)
 
-    except transcription_service.TranscriptionError as e:
+    except (transcription_service.TranscriptionError,
+            elevenlabs_service.ScribeTranscriptionError) as e:
         return jsonify({"error": str(e)}), 500
 
     except Exception as e:

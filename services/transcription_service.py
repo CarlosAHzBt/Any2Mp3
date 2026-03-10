@@ -17,10 +17,16 @@ import os
 import tempfile
 from difflib import SequenceMatcher
 
+import torch
 import whisper
 from pydub import AudioSegment
 
 import config
+
+# Detectar dispositivo óptimo (GPU si hay CUDA, si no CPU)
+DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
+print(f"🖥️  Whisper usará: {DEVICE.upper()}"
+      + (f" ({torch.cuda.get_device_name(0)})" if DEVICE == "cuda" else ""))
 
 # Cache del modelo cargado
 _loaded_model_name: str | None = None
@@ -53,8 +59,8 @@ def _get_model(model_name: str | None = None):
             del _loaded_model
             _loaded_model = None
 
-        print(f"⏳  Cargando modelo Whisper '{target}'...")
-        _loaded_model = whisper.load_model(target)
+        print(f"⏳  Cargando modelo Whisper '{target}' en {DEVICE.upper()}...")
+        _loaded_model = whisper.load_model(target, device=DEVICE)
         _loaded_model_name = target
         print(f"✅  Modelo Whisper '{target}' listo.")
 
@@ -255,8 +261,8 @@ def transcribe(
     try:
         model = _get_model(model_name)
 
-        # Opciones base
-        options = {"fp16": False}
+        # Opciones base — fp16 acelera ~2x en GPU
+        options = {"fp16": DEVICE == "cuda"}
         lang = language or config.WHISPER_LANGUAGE
         if lang:
             options["language"] = lang

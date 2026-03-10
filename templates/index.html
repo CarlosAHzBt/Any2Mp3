@@ -13,6 +13,12 @@
             <p class="subtitle">Herramientas de audio inteligentes</p>
         </header>
 
+        <!-- Widget de dispositivo GPU / CPU -->
+        <div id="device-badge" class="device-badge device-badge--loading">
+            <span class="device-badge__dot"></span>
+            <span class="device-badge__text" id="device-text">Detectando dispositivo...</span>
+        </div>
+
         <!-- ========== Navegación por tabs ========== -->
         <nav class="tabs">
             <button class="tab tab--active" data-tab="converter">🔄 Convertidor</button>
@@ -97,7 +103,25 @@
 
             <!-- Opciones de transcripción -->
             <div id="t-options" class="transcription-options-grid hidden">
-                <div class="transcription-options">
+                <!-- Selector de motor -->
+                <div class="transcription-options transcription-options--full">
+                    <label for="t-engine" class="transcription-options__label">Motor:</label>
+                    <div class="engine-selector">
+                        <button class="engine-btn engine-btn--active" data-engine="whisper">
+                            <span class="engine-btn__icon">🧠</span>
+                            <span class="engine-btn__name">Whisper</span>
+                            <span class="engine-btn__tag">Local · GPU</span>
+                        </button>
+                        <button class="engine-btn" data-engine="elevenlabs" id="t-engine-elevenlabs">
+                            <span class="engine-btn__icon">🔷</span>
+                            <span class="engine-btn__name">Scribe v2</span>
+                            <span class="engine-btn__tag">ElevenLabs · API</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Opciones Whisper (modelo) -->
+                <div class="transcription-options" id="t-whisper-options">
                     <label for="t-model" class="transcription-options__label">Calidad:</label>
                     <select id="t-model" class="transcription-options__select">
                         <option value="tiny">⚡ Ultra rápido (tiny)</option>
@@ -107,6 +131,16 @@
                         <option value="turbo">🧠 SOTA (turbo)</option>
                     </select>
                 </div>
+
+                <!-- Opciones ElevenLabs (diarización) -->
+                <div class="transcription-options hidden" id="t-elevenlabs-options">
+                    <label class="transcription-options__label">Opciones:</label>
+                    <label class="toggle-option">
+                        <input type="checkbox" id="t-diarize">
+                        <span>🗣️ Identificar speakers</span>
+                    </label>
+                </div>
+
                 <div class="transcription-options">
                     <label for="t-language" class="transcription-options__label">Idioma:</label>
                     <select id="t-language" class="transcription-options__select">
@@ -170,8 +204,8 @@
 
             <!-- Info del modelo -->
             <div class="model-info">
-                <p>🧠 Powered by <strong>OpenAI Whisper</strong> — SOTA en reconocimiento de voz</p>
-                <p>99 idiomas · Auto-detección · Timestamps · Elegí el modelo según tu hardware</p>
+                <p>🧠 <strong>Whisper</strong> (local, GPU) &middot; 🔷 <strong>Scribe v2</strong> (ElevenLabs, cloud)</p>
+                <p>99 idiomas · Auto-detección · Timestamps · Elegí el motor según tu necesidad</p>
             </div>
         </main>
 

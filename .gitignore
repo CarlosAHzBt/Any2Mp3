@@ -1,4 +1,5 @@
 # Any2Mp3 — Archivos temporales y dependencias
+.env
 uploads/
 outputs/
 __pycache__/
