@@ -56,6 +56,10 @@ TRANSCRIPTION_AUDIO_EXTENSIONS = {"mp3", "wav", "flac", "ogg", "m4a", "wma", "aa
 # ---- ElevenLabs (Scribe v2) ----
 ELEVENLABS_API_KEY = os.environ.get("ELEVENLABS_API_KEY", "")
 
+# ---- Google Gemini (STT) ----
+GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "")
+GEMINI_STT_MODEL = os.environ.get("GEMINI_STT_MODEL", "gemini-3-flash-preview")
+
 # Crear carpetas si no existen
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 os.makedirs(OUTPUT_FOLDER, exist_ok=True)

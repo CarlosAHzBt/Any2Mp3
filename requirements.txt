@@ -3,4 +3,5 @@ ffmpeg-python>=0.2
 openai-whisper>=20231117
 pydub>=0.25
 elevenlabs>=2.0
+google-genai>=0.7
 python-dotenv>=1.0

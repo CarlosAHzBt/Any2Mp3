@@ -16,6 +16,7 @@ Convierte prácticamente **cualquier archivo de video/audio a MP3** y **transcri
 |---------|-------------|
 | 🔄 **Conversión a MP3** | Soporta MP4, MOV y más formatos de video/audio |
 | 🎙️ **Transcripción de audio** | Speech-to-text con OpenAI Whisper (99 idiomas) |
+| ☁️ **APIs de transcripción** | ElevenLabs Scribe v2 y Google Gemini (vía API key) |
 | 🧠 **Múltiples modelos** | Tiny, Base, Small, Medium y Turbo (SOTA) |
 | ✂️ **Chunked transcription** | Divide audio largo en partes, transcribe y une inteligentemente |
 | 🌐 **Auto-detección de idioma** | O selecciona manualmente entre 12+ idiomas |
@@ -95,6 +96,14 @@ Any2Mp3/
 | `turbo` | 809M | ~6 GB | 🐢🐢 | ★★★★★ |
 
 > **Tip:** En CPU, `base` ofrece el mejor balance velocidad/calidad. Si tienes GPU con CUDA, prueba `turbo` para resultados SOTA.
+
+## 🔑 Variables de entorno (APIs cloud)
+
+Configurá las claves en tu archivo `.env`:
+
+- `ELEVENLABS_API_KEY=...`
+- `GEMINI_API_KEY=...`
+- `GEMINI_STT_MODEL=gemini-3-flash-preview` (opcional)
 
 ## 🤝 Contribuir
 

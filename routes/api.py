@@ -11,7 +11,13 @@ from flask import Blueprint, request, jsonify, send_file
 import torch
 
 from converters.registry import get_supported_extensions
-from services import file_service, conversion_service, transcription_service, elevenlabs_service
+from services import (
+    file_service,
+    conversion_service,
+    transcription_service,
+    elevenlabs_service,
+    google_stt_service,
+)
 
 api = Blueprint("api", __name__)
 
@@ -140,6 +146,13 @@ def transcription_engines():
             "available": elevenlabs_service.is_available(),
             "icon": "🔷",
         },
+        {
+            "id": "google",
+            "name": "Google Gemini",
+            "description": "API cloud — STT con Gemini, requiere API key",
+            "available": google_stt_service.is_available(),
+            "icon": "🟢",
+        },
     ]
     return jsonify({"engines": engines})
 
@@ -186,15 +199,22 @@ def transcribe_file():
             result = elevenlabs_service.transcribe(
                 input_path, language=language, diarize=diarize
             )
-        else:
+        elif engine == "google":
+            result = google_stt_service.transcribe(
+                input_path, language=language
+            )
+        elif engine == "whisper":
             result = transcription_service.transcribe(
                 input_path, language=language, model_name=model_name
             )
+        else:
+            return jsonify({"error": f"Motor de transcripción no soportado: {engine}"}), 400
 
         return jsonify(result)
 
     except (transcription_service.TranscriptionError,
-            elevenlabs_service.ScribeTranscriptionError) as e:
+            elevenlabs_service.ScribeTranscriptionError,
+            google_stt_service.GoogleTranscriptionError) as e:
         return jsonify({"error": str(e)}), 500
 
     except Exception as e:

@@ -285,6 +285,8 @@ document.addEventListener("DOMContentLoaded", () => {
     // --- Engine selector ---
     engineButtons.forEach(btn => {
         btn.addEventListener("click", () => {
+            if (btn.classList.contains("engine-btn--disabled")) return;
+
             const engine = btn.dataset.engine;
             tCurrentEngine = engine;
             engineButtons.forEach(b => b.classList.remove("engine-btn--active"));
@@ -294,6 +296,10 @@ document.addEventListener("DOMContentLoaded", () => {
                 tWhisperOpts.classList.add("hidden");
                 tElevenOpts.classList.remove("hidden");
                 tModelHint.textContent = "💡 Scribe v2: transcripción cloud ultra rápida. Requiere API key de ElevenLabs.";
+            } else if (engine === "google") {
+                tWhisperOpts.classList.add("hidden");
+                tElevenOpts.classList.add("hidden");
+                tModelHint.textContent = "💡 Gemini: transcripción cloud multimodal. Requiere API key de Google.";
             } else {
                 tWhisperOpts.classList.remove("hidden");
                 tElevenOpts.classList.add("hidden");
@@ -307,12 +313,19 @@ document.addEventListener("DOMContentLoaded", () => {
         try {
             const res = await fetch("/api/transcription/engines");
             const data = await res.json();
-            const elBtn = document.getElementById("t-engine-elevenlabs");
-            const elEngine = data.engines.find(e => e.id === "elevenlabs");
-            if (elEngine && !elEngine.available) {
-                elBtn.classList.add("engine-btn--disabled");
-                elBtn.title = "API key no configurada. Agregá ELEVENLABS_API_KEY en .env";
-            }
+            data.engines.forEach(engine => {
+                const btn = document.querySelector(`.engine-btn[data-engine="${engine.id}"]`);
+                if (!btn) return;
+                if (!engine.available) {
+                    btn.classList.add("engine-btn--disabled");
+                    if (engine.id === "elevenlabs") {
+                        btn.title = "API key no configurada. Agregá ELEVENLABS_API_KEY en .env";
+                    }
+                    if (engine.id === "google") {
+                        btn.title = "API key no configurada. Agregá GEMINI_API_KEY en .env";
+                    }
+                }
+            });
         } catch { /* ignore */ }
     })();
 
@@ -457,7 +470,11 @@ document.addEventListener("DOMContentLoaded", () => {
                     const pct = Math.round((e.loaded / e.total) * 40);
                     tProgressBar.style.width = `${pct}%`;
                     if (pct >= 40) {
-                        const engineLabel = tCurrentEngine === "elevenlabs" ? "🔷 Scribe v2" : tModel.options[tModel.selectedIndex].text;
+                        const engineLabel = tCurrentEngine === "elevenlabs"
+                            ? "🔷 Scribe v2"
+                            : tCurrentEngine === "google"
+                                ? "🟢 Gemini"
+                                : tModel.options[tModel.selectedIndex].text;
                         tProgressText.textContent = `🧠 Transcribiendo con ${engineLabel}...`;
                         // Animar la barra lentamente mientras espera
                         let fakePct = 40;
@@ -467,23 +484,32 @@ document.addEventListener("DOMContentLoaded", () => {
                                 `🔷 Scribe v2 procesando...`,
                                 `🔷 Generando transcripción...`,
                                 `⏳ Casi listo...`,
+                                `✅ Finalizando respuesta...`,
                             ]
-                            : [
-                            `🧠 Transcribiendo con ${engineLabel}...`,
-                            `🔪 Dividiendo audio en partes...`,
-                            `📝 Procesando chunks de audio...`,
-                            `🧩 Mergeando transcripciones...`,
-                            `⏳ Casi listo, finalizando...`,
-                        ];
+                            : tCurrentEngine === "google"
+                                ? [
+                                    `🟢 Subiendo audio a Google...`,
+                                    `🟢 Gemini procesando audio...`,
+                                    `🟢 Generando transcripción...`,
+                                    `⏳ Casi listo...`,
+                                    `✅ Finalizando respuesta...`,
+                                ]
+                                : [
+                                    `🧠 Transcribiendo con ${engineLabel}...`,
+                                    `🔪 Dividiendo audio en partes...`,
+                                    `📝 Procesando chunks de audio...`,
+                                    `🧩 Mergeando transcripciones...`,
+                                    `⏳ Casi listo, finalizando...`,
+                                ];
                         let msgIdx = 0;
                         const interval = setInterval(() => {
                             fakePct += 0.3;
                             if (fakePct >= 95) clearInterval(interval);
                             tProgressBar.style.width = `${fakePct}%`;
-                            if (fakePct > 50 && msgIdx < msgs.length - 1) msgIdx = 1;
-                            if (fakePct > 65) msgIdx = 2;
-                            if (fakePct > 80) msgIdx = 3;
-                            if (fakePct > 90) msgIdx = 4;
+                            if (fakePct > 50 && msgIdx < msgs.length - 1) msgIdx = Math.min(1, msgs.length - 1);
+                            if (fakePct > 65) msgIdx = Math.min(2, msgs.length - 1);
+                            if (fakePct > 80) msgIdx = Math.min(3, msgs.length - 1);
+                            if (fakePct > 90) msgIdx = Math.min(4, msgs.length - 1);
                             tProgressText.textContent = msgs[msgIdx];
                         }, 2000);
                         xhr._fakeInterval = interval;
