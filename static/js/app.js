@@ -643,4 +643,325 @@ document.addEventListener("DOMContentLoaded", () => {
             ? "⏱️ Timestamps"
             : "⏱️ Ocultar Timestamps";
     });
+    // ============================================================
+    //  TAB 3: Unir Audios
+    // ============================================================
+    const mDropZone       = document.getElementById("m-drop-zone");
+    const mFileInput      = document.getElementById("m-file-input");
+    const mFilesContainer = document.getElementById("m-files-container");
+    const mFilesList      = document.getElementById("m-files-list");
+    const mTotalDuration  = document.getElementById("m-total-duration");
+    const mBtnMerge       = document.getElementById("m-btn-merge");
+    const mBtnAddMore     = document.getElementById("m-btn-add-more");
+    const mFileInputMore  = document.getElementById("m-file-input-more");
+    const mProgressCont   = document.getElementById("m-progress-container");
+    const mProgressBar    = document.getElementById("m-progress-bar");
+    const mProgressText   = document.getElementById("m-progress-text");
+    const mResultDiv      = document.getElementById("m-result");
+    const mBtnDownload    = document.getElementById("m-btn-download");
+    const mBtnTranscribe  = document.getElementById("m-btn-transcribe");
+    const mErrorDiv       = document.getElementById("m-error");
+    const mErrorText      = document.getElementById("m-error-text");
+    const modal           = document.getElementById("transcribe-modal");
+    const modalClose      = document.getElementById("modal-close");
+    const modalBtnStart   = document.getElementById("modal-btn-start");
+
+    let mergerFiles = [];      // {id, file, duration}
+    let mergedBlob = null;
+    let mergedFile = null;
+    let mergeInProgress = false;
+
+    const ACCEPTED_EXTENSIONS = /\.(mp3|ogg|opus)$/i;
+
+    function formatMergerTime(seconds) {
+        const h = Math.floor(seconds / 3600);
+        const m = Math.floor((seconds % 3600) / 60);
+        const s = Math.floor(seconds % 60);
+        if (h > 0) return `${h}:${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
+        return `${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
+    }
+
+    function updateTotalDuration() {
+        const total = mergerFiles.reduce((acc, f) => acc + (f.duration || 0), 0);
+        mTotalDuration.textContent = formatMergerTime(total);
+    }
+
+    function invalidateMergeResult() {
+        mergedBlob = null;
+        mergedFile = null;
+        mResultDiv.classList.add("hidden");
+        if (mBtnDownload.href && mBtnDownload.href !== "#") {
+            URL.revokeObjectURL(mBtnDownload.href);
+            mBtnDownload.href = "#";
+        }
+    }
+
+    async function getAudioDuration(file) {
+        return new Promise((resolve) => {
+            const url = URL.createObjectURL(file);
+            const audio = new Audio(url);
+            audio.addEventListener("loadedmetadata", () => {
+                URL.revokeObjectURL(url);
+                resolve(audio.duration);
+            });
+            audio.addEventListener("error", () => {
+                URL.revokeObjectURL(url);
+                resolve(0);
+            });
+        });
+    }
+
+    async function handleMergerFiles(fileList) {
+        const files = Array.from(fileList);
+        let added = 0;
+        for (const file of files) {
+            if (ACCEPTED_EXTENSIONS.test(file.name)) {
+                const duration = await getAudioDuration(file);
+                mergerFiles.push({
+                    id: "f_" + Math.random().toString(36).substr(2, 9),
+                    file: file,
+                    duration: duration
+                });
+                added++;
+            }
+        }
+        if (added > 0) {
+            invalidateMergeResult();
+        }
+        renderMergerList();
+    }
+
+    function moveItem(fromIndex, toIndex) {
+        if (toIndex < 0 || toIndex >= mergerFiles.length) return;
+        const item = mergerFiles.splice(fromIndex, 1)[0];
+        mergerFiles.splice(toIndex, 0, item);
+        invalidateMergeResult();
+        renderMergerList();
+    }
+
+    function removeItem(index) {
+        mergerFiles.splice(index, 1);
+        invalidateMergeResult();
+        renderMergerList();
+    }
+
+    function renderMergerList() {
+        mFilesList.innerHTML = "";
+
+        if (mergerFiles.length > 0) {
+            mDropZone.classList.add("hidden");
+            mFilesContainer.classList.remove("hidden");
+        } else {
+            mDropZone.classList.remove("hidden");
+            mFilesContainer.classList.add("hidden");
+            mResultDiv.classList.add("hidden");
+        }
+
+        mErrorDiv.classList.add("hidden");
+        updateTotalDuration();
+
+        mergerFiles.forEach((fObj, index) => {
+            const li = document.createElement("li");
+
+            // Número de orden
+            const orderSpan = document.createElement("span");
+            orderSpan.className = "drag-handle";
+            orderSpan.textContent = `${index + 1}.`;
+
+            // Nombre completo
+            const nameSpan = document.createElement("span");
+            nameSpan.className = "file-name";
+            nameSpan.textContent = fObj.file.name;
+            nameSpan.title = fObj.file.name;
+
+            // Duración
+            const durSpan = document.createElement("span");
+            durSpan.className = "file-duration";
+            durSpan.textContent = formatMergerTime(fObj.duration);
+
+            // Controles de orden
+            const controls = document.createElement("span");
+            controls.className = "merger-controls";
+
+            const btnUp = document.createElement("button");
+            btnUp.className = "btn--move";
+            btnUp.textContent = "▲";
+            btnUp.title = "Mover arriba";
+            btnUp.disabled = (index === 0);
+            btnUp.addEventListener("click", () => moveItem(index, index - 1));
+
+            const btnDown = document.createElement("button");
+            btnDown.className = "btn--move";
+            btnDown.textContent = "▼";
+            btnDown.title = "Mover abajo";
+            btnDown.disabled = (index === mergerFiles.length - 1);
+            btnDown.addEventListener("click", () => moveItem(index, index + 1));
+
+            const btnRemove = document.createElement("button");
+            btnRemove.className = "btn--remove";
+            btnRemove.textContent = "✕";
+            btnRemove.title = "Quitar";
+            btnRemove.addEventListener("click", () => removeItem(index));
+
+            controls.appendChild(btnUp);
+            controls.appendChild(btnDown);
+            controls.appendChild(btnRemove);
+
+            li.appendChild(orderSpan);
+            li.appendChild(nameSpan);
+            li.appendChild(durSpan);
+            li.appendChild(controls);
+
+            mFilesList.appendChild(li);
+        });
+    }
+
+    // --- Zona de drop principal (archivos desde SO) ---
+    mDropZone.addEventListener("dragover", (e) => {
+        e.preventDefault();
+        mDropZone.classList.add("drop-zone--active");
+    });
+    mDropZone.addEventListener("dragleave", () => {
+        mDropZone.classList.remove("drop-zone--active");
+    });
+    mDropZone.addEventListener("drop", (e) => {
+        e.preventDefault();
+        mDropZone.classList.remove("drop-zone--active");
+        if (e.dataTransfer.files.length > 0) {
+            handleMergerFiles(e.dataTransfer.files);
+        }
+    });
+
+    // --- File input principal (selección múltiple desde el inicio) ---
+    mFileInput.addEventListener("change", () => {
+        handleMergerFiles(mFileInput.files);
+        mFileInput.value = "";
+    });
+
+    // --- Botón "Agregar más" ---
+    mBtnAddMore.addEventListener("click", () => mFileInputMore.click());
+    mFileInputMore.addEventListener("change", () => {
+        handleMergerFiles(mFileInputMore.files);
+        mFileInputMore.value = "";
+    });
+
+    // --- Drop adicional sobre la lista existente ---
+    mFilesContainer.addEventListener("dragover", (e) => {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = "copy";
+    });
+    mFilesContainer.addEventListener("drop", (e) => {
+        e.preventDefault();
+        if (e.dataTransfer.files.length > 0) {
+            handleMergerFiles(e.dataTransfer.files);
+        }
+    });
+
+    function mShowError(msg) {
+        mErrorText.textContent = msg;
+        mErrorDiv.classList.remove("hidden");
+        mProgressCont.classList.add("hidden");
+        mBtnMerge.disabled = false;
+        mergeInProgress = false;
+    }
+
+    // --- Merge ---
+    mBtnMerge.addEventListener("click", () => {
+        if (mergeInProgress) return;
+        if (mergerFiles.length < 2) {
+            mShowError("Agrega al menos 2 archivos para unir.");
+            return;
+        }
+
+        mergeInProgress = true;
+        mBtnMerge.disabled = true;
+        mResultDiv.classList.add("hidden");
+        mErrorDiv.classList.add("hidden");
+        mProgressCont.classList.remove("hidden");
+        mProgressBar.style.width = "0%";
+        mProgressText.textContent = "Subiendo archivos...";
+
+        const formData = new FormData();
+        mergerFiles.forEach(f => formData.append("files[]", f.file));
+
+        const xhr = new XMLHttpRequest();
+
+        xhr.upload.addEventListener("progress", (e) => {
+            if (e.lengthComputable) {
+                const pct = Math.round((e.loaded / e.total) * 80);
+                mProgressBar.style.width = `${pct}%`;
+                if (pct >= 80) {
+                    mProgressText.textContent = "Uniendo audios...";
+                }
+            }
+        });
+
+        xhr.addEventListener("load", () => {
+            mProgressBar.style.width = "100%";
+            mergeInProgress = false;
+            mBtnMerge.disabled = false;
+
+            if (xhr.status === 200) {
+                mergedBlob = xhr.response;
+                const url = URL.createObjectURL(mergedBlob);
+                mBtnDownload.href = url;
+                mergedFile = new File([mergedBlob], "merged_audio.mp3", { type: "audio/mpeg" });
+
+                mProgressCont.classList.add("hidden");
+                mResultDiv.classList.remove("hidden");
+            } else {
+                const blob = xhr.response;
+                if (blob && blob.size > 0) {
+                    const reader = new FileReader();
+                    reader.onload = () => {
+                        try {
+                            const data = JSON.parse(reader.result);
+                            mShowError(data.error || `Error del servidor (${xhr.status}).`);
+                        } catch {
+                            mShowError(`Error del servidor (${xhr.status}).`);
+                        }
+                    };
+                    reader.readAsText(blob);
+                } else {
+                    mShowError(`Error del servidor (${xhr.status}).`);
+                }
+            }
+        });
+
+        xhr.addEventListener("error", () => mShowError("Error de red."));
+        xhr.addEventListener("timeout", () => mShowError("Tiempo de espera agotado."));
+
+        xhr.timeout = 300000;
+        xhr.open("POST", "/api/merge");
+        xhr.responseType = "blob";
+        xhr.send(formData);
+    });
+
+    // --- Lógica del Modal de transcripción ---
+    mBtnTranscribe.addEventListener("click", () => {
+        if (!mergedFile) return;
+        modal.classList.remove("hidden");
+    });
+
+    modalClose.addEventListener("click", () => modal.classList.add("hidden"));
+
+    modal.addEventListener("click", (e) => {
+        if (e.target === modal) modal.classList.add("hidden");
+    });
+
+    modalBtnStart.addEventListener("click", () => {
+        modal.classList.add("hidden");
+        document.querySelector(".tab[data-tab='transcriber']").click();
+        tShowFile(mergedFile);
+        const eng = document.getElementById("modal-engine").value;
+        const lang = document.getElementById("modal-language").value;
+        const engineBtn = document.querySelector(`.engine-btn[data-engine="${eng}"]`);
+        if (engineBtn && !engineBtn.classList.contains("engine-btn--disabled")) {
+            engineBtn.click();
+        }
+        document.getElementById("t-language").value = lang;
+        tBtnTranscribe.click();
+    });
+
 });
+

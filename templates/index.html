@@ -23,6 +23,7 @@
         <nav class="tabs">
             <button class="tab tab--active" data-tab="converter">🔄 Convertidor</button>
             <button class="tab" data-tab="transcriber">🎤 Audio a Texto</button>
+            <button class="tab" data-tab="merger">🔗 Unir MP3s</button>
         </nav>
 
         <!-- ========== TAB 1: Convertidor ========== -->
@@ -214,9 +215,92 @@
             </div>
         </main>
 
+        <!-- ========== TAB 3: Unir MP3s ========== -->
+        <main id="tab-merger" class="tab-content">
+            <!-- Zona de drop para múltiples audios -->
+            <div id="m-drop-zone" class="drop-zone">
+                <div class="drop-zone__content">
+                    <span class="drop-zone__icon">🎶</span>
+                    <p>Arrastrá múltiples archivos de audio acá o hacé clic para seleccionar</p>
+                    <p class="drop-zone__formats">mp3, ogg, opus</p>
+                </div>
+                <input type="file" id="m-file-input" class="drop-zone__input" accept=".mp3,.ogg,.opus" multiple>
+            </div>
+
+            <!-- Lista de archivos a unir (ordenables) -->
+            <div id="m-files-container" class="merger-files hidden">
+                <h3>Archivos seleccionados (Arrastra para reordenar)</h3>
+                <ul id="m-files-list" class="merger-list">
+                    <!-- Los items se inyectan via JS -->
+                </ul>
+                <div class="merger-summary">
+                    <p>Duración total estimada: <span id="m-total-duration">00:00</span></p>
+                </div>
+                <div class="merger-actions">
+                    <button id="m-btn-add-more" class="btn btn--action">➕ Agregar más</button>
+                    <input type="file" id="m-file-input-more" class="hidden" accept=".mp3,.ogg,.opus" multiple>
+                    <button id="m-btn-merge" class="btn btn--convert" style="margin-top: 0;">
+                        🔗 Unir MP3s
+                    </button>
+                </div>
+            </div>
+
+            <!-- Barra de progreso -->
+            <div id="m-progress-container" class="progress hidden">
+                <div class="progress__bar" id="m-progress-bar"></div>
+                <p class="progress__text" id="m-progress-text">Uniendo...</p>
+            </div>
+
+            <!-- Resultado de unión -->
+            <div id="m-result" class="result hidden">
+                <span class="result__icon">✅</span>
+                <p>¡Unión exitosa!</p>
+                <div class="merger-actions">
+                    <a id="m-btn-download" class="btn btn--action" href="#" download="merged.mp3">💾 Descargar MP3</a>
+                    <button id="m-btn-transcribe" class="btn btn--action">🎤 Transcribir este audio</button>
+                </div>
+            </div>
+
+            <!-- Error -->
+            <div id="m-error" class="error hidden">
+                <span class="error__icon">❌</span>
+                <p id="m-error-text"></p>
+            </div>
+        </main>
+
         <footer>
             <p>Any2Mp3 &mdash; Modular &amp; Extensible Audio Toolkit</p>
         </footer>
+    </div>
+
+    <!-- Modal para opciones de transcripción rápida (post-unión) -->
+    <div id="transcribe-modal" class="modal hidden">
+        <div class="modal__content">
+            <span class="modal__close" id="modal-close">&times;</span>
+            <h2>Transcribir archivo unido</h2>
+            
+            <div class="transcription-options">
+                <label for="modal-engine" class="transcription-options__label">Motor:</label>
+                <select id="modal-engine" class="transcription-options__select">
+                    <option value="whisper">🧠 Whisper (Local)</option>
+                    <option value="elevenlabs">🔷 ElevenLabs Scribe</option>
+                    <option value="google">🟢 Google Gemini</option>
+                </select>
+            </div>
+
+            <div class="transcription-options">
+                <label for="modal-language" class="transcription-options__label">Idioma:</label>
+                <select id="modal-language" class="transcription-options__select">
+                    <option value="">🌐 Auto-detectar</option>
+                    <option value="es">🇪🇸 Español</option>
+                    <option value="en">🇺🇸 Inglés</option>
+                </select>
+            </div>
+
+            <button id="modal-btn-start" class="btn btn--convert" style="margin-top: 1rem;">
+                Comenzar Transcripción
+            </button>
+        </div>
     </div>
 
     <script src="/static/js/app.js"></script>

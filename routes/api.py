@@ -17,6 +17,7 @@ from services import (
     transcription_service,
     elevenlabs_service,
     google_stt_service,
+    audio_service,
 )
 
 api = Blueprint("api", __name__)
@@ -110,6 +111,64 @@ def convert_file():
             file_service.cleanup_file(input_path)
         if output_path:
             file_service.cleanup_file(output_path)
+
+
+@api.route("/api/merge", methods=["POST"])
+def merge_files():
+    """
+    Recibe múltiples archivos MP3 y los une en uno solo.
+    Espera form-data con múltiples campos 'files[]'.
+    """
+    if "files[]" not in request.files:
+        return jsonify({"error": "No se enviaron archivos."}), 400
+
+    files = request.files.getlist("files[]")
+    if len(files) < 2:
+        return jsonify({"error": "Se requieren al menos dos archivos para unir."}), 400
+
+    input_paths = []
+    output_path = None
+    
+    try:
+        # Guardar todos los archivos temporalmente
+        for f in files:
+            if not f.filename:
+                continue
+            ext = file_service.get_extension(f.filename)
+            if ext not in ["mp3", "ogg", "opus"]:
+                return jsonify({"error": f"Formato '.{ext}' no soportado. Usa mp3, ogg o opus."}), 415
+                
+            path, _ = file_service.save_uploaded_file(f)
+            input_paths.append(path)
+
+        if len(input_paths) < 2:
+             return jsonify({"error": "Se requieren al menos dos archivos válidos."}), 400
+
+        # Preparar salida
+        output_path = file_service.build_output_path("merged_audio.mp3")
+
+        # Unir
+        result_path = audio_service.merge_mp3_files(input_paths, output_path)
+
+        return send_file(
+            result_path,
+            as_attachment=True,
+            download_name="merged_audio.mp3",
+            mimetype="audio/mpeg",
+        )
+
+    except audio_service.AudioMergeError as e:
+        return jsonify({"error": str(e)}), 500
+
+    except Exception as e:
+        return jsonify({"error": f"Error inesperado: {e}"}), 500
+
+    finally:
+        for path in input_paths:
+            file_service.cleanup_file(path)
+        if output_path:
+            file_service.cleanup_file(output_path)
+
 
 
 # ============================================================

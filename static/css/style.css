@@ -599,3 +599,151 @@ footer {
 .hidden {
     display: none !important;
 }
+
+/* ---------- Merger List ---------- */
+.merger-files {
+    margin-top: 1.2rem;
+    background: var(--surface);
+    border-radius: var(--radius);
+    padding: 1.2rem;
+}
+
+.merger-files h3 {
+    font-size: .95rem;
+    margin-bottom: .8rem;
+    color: var(--text-muted);
+}
+
+.merger-list {
+    list-style: none;
+    max-height: 250px;
+    overflow-y: auto;
+}
+
+.merger-list li {
+    display: flex;
+    align-items: center;
+    gap: .6rem;
+    background: var(--surface-2);
+    padding: .8rem 1rem;
+    margin-bottom: .5rem;
+    border-radius: calc(var(--radius) - 4px);
+    transition: background .15s;
+    font-size: .9rem;
+}
+
+.merger-list li:hover {
+    background: rgba(124, 92, 252, .08);
+}
+
+.merger-list .drag-handle {
+    min-width: 1.5rem;
+    font-weight: 700;
+    color: var(--accent);
+    font-size: .85rem;
+    text-align: center;
+}
+
+.merger-list .file-name {
+    flex: 1;
+    word-break: break-all;
+    line-height: 1.4;
+}
+
+.merger-list .file-duration {
+    font-family: 'SF Mono', 'Fira Code', monospace;
+    color: var(--accent);
+    font-size: .85rem;
+    white-space: nowrap;
+}
+
+.merger-controls {
+    display: flex;
+    gap: .25rem;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+.btn--move {
+    border: none;
+    background: var(--surface);
+    color: var(--text-muted);
+    border-radius: 4px;
+    width: 26px;
+    height: 26px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: .7rem;
+    transition: background .15s, color .15s;
+}
+
+.btn--move:hover:not(:disabled) {
+    background: var(--primary);
+    color: #fff;
+}
+
+.btn--move:disabled {
+    opacity: .3;
+    cursor: not-allowed;
+}
+
+.merger-summary {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--surface-2);
+    font-weight: 600;
+}
+
+.merger-actions {
+    display: flex;
+    gap: .5rem;
+    margin-top: 1rem;
+    justify-content: center;
+}
+
+/* ---------- Modal ---------- */
+.modal {
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 15, 20, .85);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    backdrop-filter: blur(4px);
+}
+
+.modal__content {
+    background: var(--surface);
+    padding: 2rem;
+    border-radius: var(--radius);
+    width: 90%;
+    max-width: 400px;
+    position: relative;
+    box-shadow: var(--shadow);
+    animation: fadeIn .2s ease;
+}
+
+.modal__close {
+    position: absolute;
+    top: 1rem;
+    right: 1.2rem;
+    font-size: 1.5rem;
+    color: var(--text-muted);
+    cursor: pointer;
+}
+
+.modal__close:hover {
+    color: var(--danger);
+}
+
+.modal h2 {
+    font-size: 1.2rem;
+    margin-bottom: 1.5rem;
+    text-align: center;
+}

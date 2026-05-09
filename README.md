@@ -23,43 +23,71 @@ Convierte prácticamente **cualquier archivo de video/audio a MP3** y **transcri
 | 📋 **Timestamps** | Segmentos con marcas de tiempo exportables |
 | 🖥️ **UI moderna** | Dark theme, drag & drop, tabs |
 
-## 🚀 Inicio rápido
+## 🚀 Guía paso a paso para ejecución
 
-### Prerrequisitos
+Sigue estos pasos para poner en marcha el proyecto en tu máquina local:
 
-- **Python 3.10+**
-- **FFmpeg** instalado en el sistema
+### 1. Prerrequisitos
+Asegúrate de tener instalado **Python 3.10+** y **FFmpeg**.
 
 ```bash
-# macOS
+# Instalar FFmpeg en macOS
 brew install ffmpeg
 
-# Ubuntu / Debian
-sudo apt install ffmpeg
+# Instalar FFmpeg en Ubuntu / Debian
+sudo apt update && sudo apt install ffmpeg
 ```
 
-### Instalación
-
+### 2. Clonar el repositorio
 ```bash
-# Clonar el repo
 git clone https://github.com/tu-usuario/Any2Mp3.git
 cd Any2Mp3
+```
 
-# Crear entorno virtual
+### 3. Configurar el entorno virtual
+Es recomendable usar un entorno virtual para gestionar las dependencias:
+
+```bash
+# Crear el entorno
 python -m venv .venv
-source .venv/bin/activate  # Windows: .venv\Scripts\activate
 
-# Instalar dependencias
+# Activar el entorno
+# En macOS/Linux:
+source .venv/bin/activate
+# En Windows:
+.venv\Scripts\activate
+```
+
+### 4. Instalar dependencias
+Con el entorno virtual activo, instala los paquetes necesarios:
+
+```bash
+pip install --upgrade pip
 pip install -r requirements.txt
 ```
 
-### Ejecutar
+### 5. Configurar variables de entorno
+Crea un archivo `.env` en la raíz del proyecto y añade tus claves de API (puedes basarte en el archivo `.env.example` si existe o crearlo desde cero):
+
+```env
+ELEVENLABS_API_KEY=tu_clave_aqui
+GEMINI_API_KEY=tu_clave_aqui
+GEMINI_STT_MODEL=gemini-3-flash-preview
+```
+
+### 6. Ejecutar la aplicación
+Inicia el servidor de desarrollo de Flask:
 
 ```bash
 python app.py
 ```
 
-Abre [http://localhost:5050](http://localhost:5050) en tu navegador. 🎉
+### 7. Acceder a la interfaz
+Abre tu navegador y dirígete a:
+👉 **[http://localhost:5050](http://localhost:5050)**
+
+¡Listo! Ya puedes empezar a convertir y transcribir. 🎉
+
 
 ## 📁 Estructura del proyecto
 
