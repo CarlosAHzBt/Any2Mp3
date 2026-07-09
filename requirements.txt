@@ -5,3 +5,4 @@ pydub>=0.25
 elevenlabs>=2.0
 google-genai>=0.7
 python-dotenv>=1.0
+torchaudio>=2.0.0

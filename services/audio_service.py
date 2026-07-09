@@ -5,7 +5,8 @@ como unir múltiples archivos MP3.
 
 import os
 import subprocess
-import tempfile
+
+import config
 
 
 class AudioMergeError(Exception):
@@ -15,8 +16,8 @@ class AudioMergeError(Exception):
 
 def merge_mp3_files(input_paths: list[str], output_path: str) -> str:
     """
-    Une múltiples archivos MP3 en uno solo, priorizando la velocidad.
-    Utiliza el concat demuxer de ffmpeg (-c copy) para evitar recodificación.
+    Une múltiples archivos de audio en un MP3.
+    Usa filter_complex concat de ffmpeg (recodifica, tolera codecs/sample rates distintos).
 
     Args:
         input_paths: Lista de rutas absolutas de los MP3 a unir.
@@ -61,7 +62,8 @@ def merge_mp3_files(input_paths: list[str], output_path: str) -> str:
         result = subprocess.run(
             cmd,
             capture_output=True,
-            text=True
+            text=True,
+            timeout=config.CONVERSION_TIMEOUT,
         )
 
         if result.returncode != 0:

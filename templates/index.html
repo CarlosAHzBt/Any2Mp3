@@ -24,6 +24,7 @@
             <button class="tab tab--active" data-tab="converter">🔄 Convertidor</button>
             <button class="tab" data-tab="transcriber">🎤 Audio a Texto</button>
             <button class="tab" data-tab="merger">🔗 Unir MP3s</button>
+            <button class="tab" data-tab="splitter">✂️ Dividir Audio</button>
         </nav>
 
         <!-- ========== TAB 1: Convertidor ========== -->
@@ -131,10 +132,11 @@
                     <label for="t-model" class="transcription-options__label">Calidad:</label>
                     <select id="t-model" class="transcription-options__select">
                         <option value="tiny">⚡ Ultra rápido (tiny)</option>
-                        <option value="base" selected>🚀 Rápido (base)</option>
+                        <option value="base">🚀 Rápido (base)</option>
                         <option value="small">⚖️ Balanceado (small)</option>
                         <option value="medium">🎯 Preciso (medium)</option>
                         <option value="turbo">🧠 SOTA (turbo)</option>
+                        <option value="large-v2" selected>🏆 Máxima calidad (large-v2)</option>
                     </select>
                 </div>
 
@@ -165,7 +167,7 @@
                         <option value="hi">🇮🇳 Hindi</option>
                     </select>
                 </div>
-                <p class="transcription-options__hint" id="t-model-hint">💡 "base" es rápido en CPU. Usá "turbo" si tenés buena GPU.</p>
+                <p class="transcription-options__hint" id="t-model-hint">💡 Máxima precisión (1550M params). Requiere GPU con ~10 GB VRAM; muy lento en CPU.</p>
             </div>
 
             <!-- Botón de transcripción -->

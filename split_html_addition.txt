@@ -1,0 +1,51 @@
+
+        <-- ========== TAB 4: División Tramos (Split) ========== -->
+        <main id="tab-splitter" class="tab-content">
+            <div id="sp-drop-zone" class="drop-zone">
+                <div class="drop-zone__content">
+                    <span class="drop-zone__icon">✂️</span>
+                    <p>Arrastrá tu audio o video acá</p>
+                    <p class="drop-zone__formats">mp3, wav, mp4, etc.</p>
+                </div>
+                <input type="file" id="sp-file-input" class="drop-zone__input" accept="audio/*,video/*">
+            </div>
+
+            <div id="sp-file-info" class="file-info hidden">
+                <div class="file-info__details">
+                    <span class="file-info__icon">✂️</span>
+                    <div>
+                        <p class="file-info__name" id="sp-file-name"></p>
+                        <p class="file-info__size" id="sp-file-size"></p>
+                    </div>
+                </div>
+                <button id="sp-btn-remove" class="btn btn--remove" title="Quitar archivo">✕</button>
+            </div>
+
+            <div id="sp-options" class="transcription-options-grid hidden" style="margin-top:20px;">
+                <div class="transcription-options">
+                    <label for="sp-duration" class="transcription-options__label">Duración aprox. por fragmento (minutos):</label>
+                    <input type="number" id="sp-duration" value="20" min="1" class="transcription-options__select" style="max-width:100px;text-align:center;">
+                </div>
+                <p class="transcription-options__hint">💡 Se ajustará automáticamente usando VAD para evitar cortar palabras por la mitad.</p>
+            </div>
+
+            <button id="sp-btn-split" class="btn btn--convert hidden">
+                ✂️ Dividir en partes (.zip)
+            </button>
+
+            <-- Barra de progreso -->
+            <div id="sp-progress-container" class="progress hidden">
+                <div class="progress__bar" id="sp-progress-bar"></div>
+                <p class="progress__text" id="sp-progress-text">Dividiendo archivo...</p>
+            </div>
+
+            <div id="sp-result" class="result hidden">
+                <span class="result__icon">✅</span>
+                <p>¡Archivo dividido con éxito!</p>
+            </div>
+            
+            <div id="sp-error" class="error hidden">
+                <span class="error__icon">❌</span>
+                <p id="sp-error-text"></p>
+            </div>
+        </main>

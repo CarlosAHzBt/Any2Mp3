@@ -9,6 +9,7 @@ Modelos disponibles (OpenAI Whisper):
 - small (244M) — Mejor calidad, más lento
 - medium(769M) — Alta calidad, requiere buena RAM
 - turbo (809M) — SOTA (large-v3-turbo), GPU recomendada
+- large-v2 (1550M) — Máxima precisión, GPU con ~10 GB VRAM
 
 Soporta 99 idiomas con auto-detección · Licencia MIT
 """
@@ -76,21 +77,14 @@ def get_available_models() -> dict:
 #  Audio splitting (pydub)
 # ============================================================
 
-def _get_audio_duration_sec(audio_path: str) -> float:
-    """Obtiene la duración del audio en segundos."""
-    audio = AudioSegment.from_file(audio_path)
-    return len(audio) / 1000.0
-
-
-def _split_audio(audio_path: str, chunk_dur: int, overlap: int) -> list[dict]:
+def _split_audio(audio: AudioSegment, chunk_dur: int, overlap: int) -> list[dict]:
     """
-    Divide un audio en chunks con overlap.
+    Divide un audio (ya cargado) en chunks con overlap.
 
     Returns:
         Lista de dicts: {"path": str, "start_sec": float, "end_sec": float}
         Los archivos temporales de chunks se crean en /tmp.
     """
-    audio = AudioSegment.from_file(audio_path)
     total_ms = len(audio)
     chunk_ms = chunk_dur * 1000
     overlap_ms = overlap * 1000
@@ -267,8 +261,9 @@ def transcribe(
         if lang:
             options["language"] = lang
 
-        # Determinar duración del audio
-        duration = _get_audio_duration_sec(audio_path)
+        # Cargar el audio una sola vez (se reutiliza para el split si hace falta)
+        audio = AudioSegment.from_file(audio_path)
+        duration = len(audio) / 1000.0
         use_chunking = duration > config.CHUNK_MIN_DURATION_SEC
 
         # --- Audio corto → transcripción directa ---
@@ -296,7 +291,7 @@ def transcribe(
 
         # --- Audio largo → chunked transcription ---
         chunks = _split_audio(
-            audio_path,
+            audio,
             chunk_dur=config.CHUNK_DURATION_SEC,
             overlap=config.CHUNK_OVERLAP_SEC,
         )

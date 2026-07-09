@@ -336,6 +336,7 @@ document.addEventListener("DOMContentLoaded", () => {
         small:  "💡 Mejor calidad (~4x), tarda un poco más. ~2 GB RAM.",
         medium: "💡 Alta calidad (~2x), puede tardar bastante en CPU. ~5 GB RAM.",
         turbo:  "💡 Máxima calidad (SOTA). Recomendado con GPU. ~6 GB RAM.",
+        "large-v2": "💡 Máxima precisión (1550M params). Requiere GPU con ~10 GB VRAM; muy lento en CPU.",
     };
 
     tModel.addEventListener("change", () => {

@@ -5,10 +5,15 @@ y delegar la lógica a los servicios.
 """
 
 import os
+import shutil
+import uuid
+import zipfile
 
 from flask import Blueprint, request, jsonify, send_file
 
 import torch
+
+import config
 
 from converters.registry import get_supported_extensions
 from services import (
@@ -18,6 +23,7 @@ from services import (
     elevenlabs_service,
     google_stt_service,
     audio_service,
+    audio_split_service,
 )
 
 api = Blueprint("api", __name__)
@@ -282,3 +288,66 @@ def transcribe_file():
     finally:
         if input_path:
             file_service.cleanup_file(input_path)
+
+@api.route("/api/split", methods=["POST"])
+def split_audio_file():
+    """
+    Recibe un archivo de audio y lo divide en fragmentos.
+    Espera form-data con campo 'file' y 'duration_mins'.
+    """
+    if "file" not in request.files:
+        return jsonify({"error": "No se envió ningún archivo."}), 400
+
+    file = request.files["file"]
+    if not file.filename:
+        return jsonify({"error": "Nombre de archivo vacío."}), 400
+
+    try:
+        duration_mins = int(request.form.get("duration_mins", 20))
+    except ValueError:
+        return jsonify({"error": "La duración debe ser un número entero."}), 400
+
+    input_path = None
+    output_dir = None
+    zip_path = None
+
+    try:
+        input_path, original_name = file_service.save_uploaded_file(file)
+
+        # pydub (AudioSegment) maneja casi todo a traves de ffmpeg, asi que funcionara con MP4 y MP3.
+        output_dir = os.path.join(config.OUTPUT_FOLDER, f"split_{uuid.uuid4().hex[:8]}")
+        os.makedirs(output_dir, exist_ok=True)
+
+        parts_paths = audio_split_service.split_audio(input_path, output_dir, target_duration_mins=duration_mins)
+
+        if len(parts_paths) == 1 and parts_paths[0] == input_path:
+            # El archivo es mas corto que la duración pedida: se devuelve tal cual
+            return send_file(
+                input_path,
+                as_attachment=True,
+                download_name=original_name
+            )
+
+        zip_filename = f"{os.path.splitext(original_name)[0]}_parts.zip"
+        zip_path = os.path.join(output_dir, zip_filename)
+
+        with zipfile.ZipFile(zip_path, 'w') as zipf:
+            for part in parts_paths:
+                zipf.write(part, os.path.basename(part))
+
+        return send_file(
+            zip_path,
+            as_attachment=True,
+            download_name=zip_filename,
+            mimetype="application/zip"
+        )
+
+    except Exception as e:
+        return jsonify({"error": f"Error al dividir el audio: {e}"}), 500
+
+    finally:
+        # send_file ya abrió el file descriptor, así que borrar acá es seguro (POSIX)
+        if input_path:
+            file_service.cleanup_file(input_path)
+        if output_dir:
+            shutil.rmtree(output_dir, ignore_errors=True)

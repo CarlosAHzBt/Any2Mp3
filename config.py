@@ -26,17 +26,18 @@ DEFAULT_AUDIO_SAMPLE_RATE = 44100
 CONVERSION_TIMEOUT = 600
 
 # ---- Transcripción (Whisper) ----
-# Modelo Whisper por defecto: "base" es rápido en CPU.
-# Opciones: tiny, base, small, medium, large, turbo
-WHISPER_MODEL = "base"
+# Modelo Whisper por defecto.
+# Opciones: tiny, base, small, medium, turbo, large-v2
+WHISPER_MODEL = "large-v2"
 
 # Modelos disponibles con info para el frontend
 WHISPER_MODELS = {
-    "tiny":   {"label": "⚡ Ultra rápido",  "desc": "39M params · ~1 GB RAM",  "size": "tiny"},
-    "base":   {"label": "🚀 Rápido",       "desc": "74M params · ~1 GB RAM",  "size": "base"},
-    "small":  {"label": "⚖️ Balanceado",   "desc": "244M params · ~2 GB RAM", "size": "small"},
-    "medium": {"label": "🎯 Preciso",      "desc": "769M params · ~5 GB RAM", "size": "medium"},
-    "turbo":  {"label": "🧠 SOTA",         "desc": "809M params · ~6 GB RAM", "size": "turbo"},
+    "tiny":     {"label": "⚡ Ultra rápido",    "desc": "39M params · ~1 GB RAM",    "size": "tiny"},
+    "base":     {"label": "🚀 Rápido",         "desc": "74M params · ~1 GB RAM",    "size": "base"},
+    "small":    {"label": "⚖️ Balanceado",     "desc": "244M params · ~2 GB RAM",   "size": "small"},
+    "medium":   {"label": "🎯 Preciso",        "desc": "769M params · ~5 GB RAM",   "size": "medium"},
+    "turbo":    {"label": "🧠 SOTA",           "desc": "809M params · ~6 GB RAM",   "size": "turbo"},
+    "large-v2": {"label": "🏆 Máxima calidad", "desc": "1550M params · ~10 GB RAM", "size": "large-v2"},
 }
 
 # Idioma por defecto (None = auto-detectar)
