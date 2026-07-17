@@ -1,6 +1,6 @@
 # 🎵 Any2Mp3
 
-Convierte prácticamente **cualquier archivo de video/audio a MP3** y **transcribe audio a texto** usando [OpenAI Whisper](https://github.com/openai/whisper), todo desde una interfaz web sencilla.
+Convierte prácticamente **cualquier archivo de video/audio a MP3** y **transcribe audio a texto** usando [OpenAI Whisper](https://github.com/openai/whisper), desde una app de escritorio.
 
 ![Python](https://img.shields.io/badge/Python-3.10%2B-blue?logo=python)
 ![Flask](https://img.shields.io/badge/Flask-3.0-lightgrey?logo=flask)
@@ -76,15 +76,14 @@ GEMINI_STT_MODEL=gemini-3-flash-preview
 ```
 
 ### 6. Ejecutar la aplicación
-Inicia el servidor de desarrollo de Flask:
+
+En macOS, abre `Any2Mp3.app` desde Finder. También puedes arrancar la misma ventana desde terminal:
 
 ```bash
-python app.py
+python desktop.py
 ```
 
-### 7. Acceder a la interfaz
-Abre tu navegador y dirígete a:
-👉 **[http://localhost:5050](http://localhost:5050)**
+La app abre su propia ventana; no necesitas iniciar un servidor ni abrir el navegador. Al cerrar la ventana termina también el proceso interno.
 
 ¡Listo! Ya puedes empezar a convertir y transcribir. 🎉
 

@@ -3,6 +3,8 @@ Any2Mp3 — Punto de entrada de la aplicación.
 Responsabilidad: Crear e inicializar la app Flask y registrar blueprints.
 """
 
+import os
+
 from flask import Flask, render_template, jsonify
 
 import config
@@ -10,7 +12,12 @@ from routes.api import api
 
 
 def create_app() -> Flask:
-    app = Flask(__name__)
+    resources = os.environ.get("RESOURCEPATH")
+    app = Flask(
+        __name__,
+        template_folder=os.path.join(resources, "templates") if resources else "templates",
+        static_folder=os.path.join(resources, "static") if resources else "static",
+    )
     app.config["MAX_CONTENT_LENGTH"] = config.MAX_CONTENT_LENGTH
 
     # Registrar blueprint de la API

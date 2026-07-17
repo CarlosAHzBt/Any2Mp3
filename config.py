@@ -4,12 +4,18 @@ Responsabilidad: Almacenar constantes y parámetros de configuración.
 """
 
 import os
+import sys
 
 from dotenv import load_dotenv
 
-load_dotenv()
-
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+SOURCE_DIR = os.path.dirname(os.path.abspath(__file__))
+BASE_DIR = (
+    os.path.join(os.path.expanduser("~/Library/Application Support"), "Any2Mp3")
+    if getattr(sys, "frozen", False)
+    else SOURCE_DIR
+)
+os.makedirs(BASE_DIR, exist_ok=True)
+load_dotenv(os.path.join(BASE_DIR, ".env"))
 
 # Carpetas de trabajo
 UPLOAD_FOLDER = os.path.join(BASE_DIR, "uploads")

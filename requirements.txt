@@ -6,3 +6,4 @@ elevenlabs>=2.0
 google-genai>=0.7
 python-dotenv>=1.0
 torchaudio>=2.0.0
+pywebview>=6.1,<7
